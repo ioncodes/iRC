@@ -28,13 +28,14 @@ namespace iRC
             Print("Nickname: ", ConsoleColor.White);
             nickname = Console.ReadLine();
             Connect();
-            IrcChannel chan = client.Channels[0];
+            
             client.ChannelMessageRecieved += (s, e) => //get messages
             {
                 /*
                     Printing text and changing color
                     Fix userinput location to stay on bottom
                 */
+                IrcChannel chan = client.Channels[e.PrivateMessage.Source];
                 int currentTopCursor = Console.CursorTop;
                 int currentLeftCursor = Console.CursorLeft;
 
@@ -69,9 +70,36 @@ namespace iRC
 
         private static void Read()
         {
-            IrcChannel chan = client.Channels[0];
+            int index = 0;
+            foreach(IrcChannel cc in client.Channels)
+            {
+                if(cc.Name != channel)
+                {
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            IrcChannel chan = client.Channels[index]; //error, crash on join new channel
             Console.Write("Input>>");
-            chan.SendMessage(Console.ReadLine().Replace("Input>>", ""));
+            string msg = Console.ReadLine().Replace("Input>>", "");
+            if(msg.Split(' ')[0] == "/join")
+            {
+                Print("\nJoining...\n\n", ConsoleColor.Green);
+                channel = msg.Split(' ')[1];
+                client.JoinChannel(channel);
+                WriteInfoHead();
+            }
+            else if(msg == "!users")
+            {
+                //todo: show all users
+            }
+            else
+            {
+                chan.SendMessage(msg);
+            }
             Read();
         }
 
